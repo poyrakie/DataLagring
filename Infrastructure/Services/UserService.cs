@@ -13,48 +13,24 @@ public class UserService(AddressRepository addressRepository, ProfileRepository 
     private readonly RoleRepository _roleRepository = roleRepository;
     private readonly UserRepository _userRepository = userRepository;
     private readonly VerificationRepository _verificationRepository = verificationRepository;
+
     private readonly UserFactories _userFactories = userFactories;
     
     public bool CreateUser(UserRegDto user)
     {
         try
         {
-            UserEntity userEntity = new UserEntity
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-            };
-            userEntity = _userRepository.Create(userEntity);
-
-            AddressEntity addressEntity = new AddressEntity
-            {
-                City = user.City,
-                PostalCode = user.PostalCode,
-                Street = user.Street,
-            };
-            addressEntity = _addressRepository.Create(addressEntity);
-
-            RoleEntity roleEntity = new RoleEntity
-            {
-                RoleName = "Admin"
-            };
-            roleEntity = _roleRepository.Create(roleEntity);
-
-            VerificationEntity verificationEntity = new VerificationEntity
-            {
-                Email = user.Email,
-                Password = user.Password,
-                UserId = userEntity.Id
-            };
-            verificationEntity = _verificationRepository.Create(verificationEntity);
-
+            UserEntity userEntity = _userFactories.CreateUserEntity(user.FirstName, user.LastName);
+            VerificationEntity verificationEntity = _userFactories.CreateVerificationEntity(user.Password, user.Email, userEntity.Id);
+            AddressEntity addressEntity = _userFactories.CreateOrGetAddressEntity(user.City, user.Street, user.PostalCode);
+            RoleEntity roleEntity = _userFactories.GetOrCreateRole(user.FirstName);
             ProfileEntity profileEntity = new ProfileEntity
             {
                 UserId = userEntity.Id,
                 RoleId = roleEntity.Id,
-                AddressId = addressEntity.Id,
+                AddressId = addressEntity.Id
             };
-            profileEntity = _profileRepository.Create(profileEntity);
+            _profileRepository.Create(profileEntity);
             return true;
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
@@ -67,7 +43,7 @@ public class UserService(AddressRepository addressRepository, ProfileRepository 
 
         foreach (var item in profileList)
         {
-            var user = _userFactories.CreateFullUser(item);
+            var user = _userFactories.CompileUserDto(item);
             //var user = new DisplayUserDto();
             //user.FirstName = item.FirstName;
             //user.LastName = item.LastName;
