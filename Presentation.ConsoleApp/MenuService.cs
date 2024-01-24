@@ -3,15 +3,13 @@ using Infrastructure.Entities;
 using Infrastructure.Factories;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
-using System.Linq.Expressions;
 
 namespace Presentation.ConsoleApp;
 
-public class MenuService(AddressRepository addressRepository, ProfileRepository profileRepository, RoleRepository roleRepository, UserRepository userRepository, VerificationRepository verificationRepository, UserFactories userFactories, UserService userService)
+public class MenuService(AddressRepository addressRepository, ProfileRepository profileRepository, UserRepository userRepository, VerificationRepository verificationRepository, UserFactories userFactories, UserService userService)
 {
     private readonly AddressRepository _addressRepository = addressRepository;
     private readonly ProfileRepository _profileRepository = profileRepository;
-    private readonly RoleRepository _roleRepository = roleRepository;
     private readonly UserRepository _userRepository = userRepository;
     private readonly VerificationRepository _verificationRepository = verificationRepository;
 
@@ -70,10 +68,6 @@ public class MenuService(AddressRepository addressRepository, ProfileRepository 
                 Console.WriteLine($"User {index + 1}:");
                 Console.WriteLine($"First name:\t{item.FirstName}");
                 Console.WriteLine($"Last name:\t{item.LastName} ");
-                Console.WriteLine($"Email:\t\t<{item.Email}>");
-                Console.WriteLine($"City:\t\t{item.City}");
-                Console.WriteLine($"Street:\t\t{item.Street}");
-                Console.WriteLine($"Postalcode:\t{item.PostalCode}");
                 Console.WriteLine("----------------------------");
                 i++;
             }
@@ -122,48 +116,51 @@ public class MenuService(AddressRepository addressRepository, ProfileRepository 
             {
                 Console.Write($"{menuStrings[i]}: ");
                 string answer = Console.ReadLine()!;
-                switch (menuStrings[i])
+                if(answer != string.Empty)
                 {
-                    case "First name":
-                        user.FirstName = answer;
-                        break;
-                    case "Last name":
-                        user.LastName = answer;
-                        break;
-                    case "Street":
-                        user.Street = answer;
-                        break;
-                    case "City":
-                        user.City = answer;
-                        break;
-                    case "Postalcode":
-                        user.PostalCode = answer;
-                        break;
-                    case "Email":
-                        if(!_verificationRepository.Exists(x => x.Email == answer))
-                        {
-                            user.Email = answer;
+                    switch (menuStrings[i])
+                    {
+                        case "First name":
+                            user.FirstName = answer;
                             break;
-                        }
-                        else
-                        {
-                            Console.WriteLine("That email already exists. Would you like to try again? (y/n)");
-                            var tryAgainAnswer = Console.ReadKey().Key;
-                            switch (tryAgainAnswer)
+                        case "Last name":
+                            user.LastName = answer;
+                            break;
+                        case "Street":
+                            user.Street = answer;
+                            break;
+                        case "City":
+                            user.City = answer;
+                            break;
+                        case "Postalcode":
+                            user.PostalCode = answer;
+                            break;
+                        case "Email":
+                            if (!_verificationRepository.Exists(x => x.Email == answer))
                             {
-                                case ConsoleKey.Y:
-                                    ShowAddMenu();
-                                    break;
-                                default:
-                                    Console.WriteLine("Returning to main menu");
-                                    MainMenu();
-                                    break;
+                                user.Email = answer;
+                                break;
                             }
+                            else
+                            {
+                                Console.WriteLine("That email already exists. Would you like to try again? (y/n)");
+                                var tryAgainAnswer = Console.ReadKey().Key;
+                                switch (tryAgainAnswer)
+                                {
+                                    case ConsoleKey.Y:
+                                        ShowAddMenu();
+                                        break;
+                                    default:
+                                        Console.WriteLine("Returning to main menu");
+                                        MainMenu();
+                                        break;
+                                }
+                                break;
+                            }
+                        case "Password":
+                            user.Password = answer;
                             break;
-                        }
-                    case "Password":
-                        user.Password = answer;
-                        break;
+                    }
                 }
             }
             if (_userService.CreateUser(user))
@@ -185,9 +182,17 @@ public class MenuService(AddressRepository addressRepository, ProfileRepository 
     }
     public void ShowEditAndDeleteMenu(ProfileEntity entity) 
     {
+        string[] propertyName =
+        {
+            "First name",
+            "Last name",
+            "Email",
+            "City",
+            "Street",
+            "Postalcode",
+        };
         while (true)
         {
-            //DisplayUserDto user = _userFactories.CompileUserDto(entity);
             Console.Clear();
             Console.WriteLine("----------------------------");
             Console.WriteLine("(value)");
@@ -205,122 +210,32 @@ public class MenuService(AddressRepository addressRepository, ProfileRepository 
             switch(result)
             {
                 case 1:
-                    Console.Write("Please enter a new first name: ");
-                    answer = Console.ReadLine()!;
-                    if (answer != string.Empty)
-                    {
-                        UserEntity userEntity = _userRepository.GetOne(x => x.Id == entity.UserId);
-                        userEntity.FirstName = answer;
-                        userEntity = _userRepository.Update((x => x.Id == userEntity.Id),userEntity);
-                        if (userEntity != null)
-                        {
-                            Console.Clear();
-                            Console.WriteLine("Update successfull!");
-                            Console.ReadKey();
-                        }
-                    }
+                    UserEntity userEntityFirstName = _userRepository.GetOne(x => x.Id == entity.UserId);
+                    SetValidInput(() => Console.ReadLine()?.Trim()!, val => userEntityFirstName.FirstName = val, propertyName[0]);
                     break;
                 case 2:
-                    Console.Write("Please enter a new last name: ");
-                    answer = Console.ReadLine()!;
-                    if (answer != string.Empty)
-                    {
-                        UserEntity userEntity = _userRepository.GetOne(x => x.Id == entity.UserId);
-                        userEntity.LastName = answer;
-                        userEntity = _userRepository.Update((x => x.Id == userEntity.Id), userEntity);
-                        if (userEntity != null)
-                        {
-                            Console.Clear();
-                            Console.WriteLine("Update successfull!");
-                            Console.ReadKey();
-                        }
-
-                    }
+                    UserEntity userEntityLastName = _userRepository.GetOne(x => x.Id == entity.UserId);
+                    SetValidInput(() => Console.ReadLine()?.Trim()!, val => userEntityLastName.LastName = val, propertyName[1]);
                     break;
                 case 3:
-                    Console.Write("Please enter a new email: ");
-                    answer = Console.ReadLine()!;
-                    if (answer != string.Empty)
-                    {
-                        VerificationEntity verificationEntity = _verificationRepository.GetOne(x => x.UserId == entity.UserId);
-                        verificationEntity.Email = answer;
-                        verificationEntity = _verificationRepository.Update((x => x.UserId == verificationEntity.UserId), verificationEntity);
-                        if (verificationEntity != null)
-                        {
-                            Console.Clear();
-                            Console.WriteLine("Update successfull!");
-                            Console.ReadKey();
-                        }
-                    }
+                    VerificationEntity verificationEntity = _verificationRepository.GetOne(x => x.UserId == entity.UserId);
+                    SetValidEmail(() => Console.ReadLine()?.Trim()!, val => verificationEntity.Email = val, propertyName[2]);
                     break;
                 case 4:
-                    UpdateAddress(entity);
-                    //Console.Write("Please enter a new City: ");
-                    //answer = Console.ReadLine()!;
-                    //if (answer != string.Empty)
-                    //{
-                    //    AddressEntity addressEntity = _addressRepository.GetOne(x => x.Id == entity.Address.Id);
-                    //    addressEntity.City = answer;
-                    //    addressEntity = _addressRepository.Update((x => x.Id == addressEntity.Id), addressEntity);
-                    //    if (addressEntity != null)
-                    //    {
-                    //        Console.Clear();
-                    //        Console.WriteLine("Update successfull!");
-                    //        Console.ReadKey();
-                    //    }
-                    //}
+                    UpdateAddress(entity, propertyName[3], propertyName[4], propertyName[5]);
                     break;
-                //case 5:
-                //    Console.Write("Please enter a new Street: ");
-                //    answer = Console.ReadLine()!;
-                //    if (answer != string.Empty)
-                //    {
-                //        AddressEntity addressEntity = _addressRepository.GetOne(x => x.Id == entity.Address.Id);
-                //        addressEntity.Street = answer;
-                //        addressEntity = _addressRepository.Update((x => x.Id == addressEntity.Id), addressEntity);
-                //        if (addressEntity != null)
-                //        {
-                //            Console.Clear();
-                //            Console.WriteLine("Update successfull!");
-                //            Console.ReadKey();
-                //        }
-                //    }
-                //    break;
-                //case 6:
-                //    Console.Write("Please enter a new postalcode: ");
-                //    answer = Console.ReadLine()!;
-                //    if (answer != string.Empty)
-                //    {
-                //        AddressEntity addressEntity = _addressRepository.GetOne(x => x.Id == entity.Address.Id);
-                //        addressEntity.PostalCode = answer;
-                //        addressEntity = _addressRepository.Update((x => x.Id == addressEntity.Id), addressEntity);
-                //        if (addressEntity != null)
-                //        {
-                //            Console.Clear();
-                //            Console.WriteLine("Update successfull!");
-                //            Console.ReadKey();
-                //        }
-                //    }
-                //    break;
-
                 case 9:
                     Console.Write("Are you sure you want to delete? (y/n)");
                     var answerKey = Console.ReadKey().Key;
                     if (answerKey == ConsoleKey.Y)
                     {
-                        if (_verificationRepository.Delete(x => x.UserId == entity.UserId))
+                        if (_verificationRepository.Delete(x => x.UserId == entity.UserId) && _profileRepository.Delete(x => x.UserId == entity.UserId) && _userRepository.Delete(x => x.Id == entity.UserId))
                         {
-                            if (_profileRepository.Delete(x => x.UserId == entity.UserId))
-                            {
-                                if (_userRepository.Delete(x => x.Id == entity.UserId))
-                                {
-                                    Console.Clear();
-                                    Console.WriteLine("User deleted successfully!");
-                                    Console.WriteLine("Returning to main menu");
-                                    Console.ReadKey();
-                                    MainMenu();
-                                }
-                            }
+                            Console.Clear();
+                            Console.WriteLine("User deleted successfully!");
+                            Console.WriteLine("Returning to main menu");
+                            Console.ReadKey();
+                            MainMenu();
                         }
                     }
                     break;
@@ -333,35 +248,59 @@ public class MenuService(AddressRepository addressRepository, ProfileRepository 
             }
         }
     }
-    private void UpdateAddress(ProfileEntity entity)
+    private void UpdateAddress(ProfileEntity entity, string propertyNameX, string propertyNameY, string propertyNameZ)
     {
-        Console.Clear();
-        Console.Write("Please enter a new city: ");
-        string city = Console.ReadLine()!;
-        if(city != null)
+        AddressEntity addressEntity = _addressRepository.GetOne(x => x.Id == entity.AddressId);
+        SetValidInput(() => Console.ReadLine()?.Trim()!, val => addressEntity.City = val, propertyNameX);
+        SetValidInput(() => Console.ReadLine()?.Trim()!, val => addressEntity.Street = val, propertyNameY);
+        SetValidInput(() => Console.ReadLine()?.Trim()!, val => addressEntity.PostalCode = val, propertyNameZ);
+        addressEntity = _userFactories.CreateOrGetAddressEntity(addressEntity.City, addressEntity.Street, addressEntity.PostalCode);
+        entity.AddressId = addressEntity.Id;
+        entity = _profileRepository.Update(x => x.UserId == entity.UserId, entity);
+        if (entity.AddressId == addressEntity.Id)
         {
-            Console.Clear();
-            Console.Write("Please enter a new street: ");
-            string street = Console.ReadLine()!;
-            if(street != null)
+            Console.WriteLine("Updated successfully");
+        }
+    }
+    private void SetValidInput(Func<string> getProperty, Action<string> setProperty, string property)
+    {
+        while (true)
+        {
+            Console.Write($"{property}: ");
+            var input = Console.ReadLine();
+            if (!string.IsNullOrEmpty(input))
             {
-                Console.Clear();
-                Console.Write("Please enter a new postalcode: ");
-                string postalCode = Console.ReadLine()!;
-                if(postalCode != null)
-                {
-                    AddressEntity addressEntity = _userFactories.CreateOrGetAddressEntity(city, street, postalCode);
-                    entity.AddressId = addressEntity.Id;
-                    entity = _profileRepository.Update(x => x.UserId == entity.UserId, entity);
-                    if(entity.AddressId == addressEntity.Id)
-                    {
-                        Console.WriteLine("Updated successfully");
-                    }
-
-                }
+                input = char.ToUpper(input[0]) + input.Substring(1);
+                setProperty(input);
+                break;
+            }
+            else
+            {
+                Console.WriteLine($"{property} may not be empty");
             }
         }
-        
+    }
+    private void SetValidEmail(Func<string> getProperty, Action<string> setProperty, string property)
+    {
+        while (true)
+        {
+            Console.Write($"{property}: ");
+            var input = Console.ReadLine();
+            if (!string.IsNullOrEmpty(input) && !_verificationRepository.Exists(x => x.Email == input))
+            {
+                input = char.ToUpper(input[0]) + input.Substring(1);
+                setProperty(input);
+                break;
+            }
+            else if (_verificationRepository.Exists(x => x.Email == input))
+            {
+                Console.WriteLine($"{input} is already registered. {property} must be unique!");
+            }
+            else
+            {
+                Console.WriteLine($"{property} may not be empty");
+            }
+        }
     }
     private void MenuHeader(string menu)
     {

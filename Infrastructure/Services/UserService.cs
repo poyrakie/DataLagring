@@ -6,13 +6,9 @@ using System.Diagnostics;
 
 namespace Infrastructure.Services;
 
-public class UserService(AddressRepository addressRepository, ProfileRepository profileRepository, RoleRepository roleRepository, UserRepository userRepository, VerificationRepository verificationRepository, UserFactories userFactories)
+public class UserService(ProfileRepository profileRepository, UserFactories userFactories)
 {
-    private readonly AddressRepository _addressRepository = addressRepository;
     private readonly ProfileRepository _profileRepository = profileRepository;
-    private readonly RoleRepository _roleRepository = roleRepository;
-    private readonly UserRepository _userRepository = userRepository;
-    private readonly VerificationRepository _verificationRepository = verificationRepository;
 
     private readonly UserFactories _userFactories = userFactories;
     
@@ -44,15 +40,6 @@ public class UserService(AddressRepository addressRepository, ProfileRepository 
         foreach (var item in profileList)
         {
             var user = _userFactories.CompileUserDto(item);
-            //var user = new DisplayUserDto();
-            //user.FirstName = item.FirstName;
-            //user.LastName = item.LastName;
-            ////user.Street = item.Profile.Address.Street;
-            ////user.City = item.Profile.Address.City;
-            ////user.PostalCode = item.Profile.Address.PostalCode;
-            ////user.RoleName = item.Profile.Role.RoleName;
-            ////user.Email = item.Verification.Email;
-
             userList.Add(user);
         }
 

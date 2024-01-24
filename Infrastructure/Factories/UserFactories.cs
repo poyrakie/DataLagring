@@ -5,10 +5,9 @@ using System.Diagnostics;
 
 namespace Infrastructure.Factories;
 
-public class UserFactories(AddressRepository addressRepository, ProfileRepository profileRepository, RoleRepository roleRepository, UserRepository userRepository, VerificationRepository verificationRepository)
+public class UserFactories(AddressRepository addressRepository, RoleRepository roleRepository, UserRepository userRepository, VerificationRepository verificationRepository)
 {
     private readonly AddressRepository _addressRepository = addressRepository;
-    private readonly ProfileRepository _profileRepository = profileRepository;
     private readonly RoleRepository _roleRepository = roleRepository;
     private readonly UserRepository _userRepository = userRepository;
     private readonly VerificationRepository _verificationRepository = verificationRepository;
