@@ -5,12 +5,13 @@ using System.Diagnostics;
 
 namespace Infrastructure.Factories;
 
-public class UserFactories(AddressRepository addressRepository, RoleRepository roleRepository, UserRepository userRepository, VerificationRepository verificationRepository)
+public class UserFactories(AddressRepository addressRepository, RoleRepository roleRepository, UserRepository userRepository, VerificationRepository verificationRepository, ProfileRepository profileRepository)
 {
     private readonly AddressRepository _addressRepository = addressRepository;
     private readonly RoleRepository _roleRepository = roleRepository;
     private readonly UserRepository _userRepository = userRepository;
     private readonly VerificationRepository _verificationRepository = verificationRepository;
+    private readonly ProfileRepository _profileRepository = profileRepository;
 
     /// <summary>
     /// Takes two strings to save a userEntity to the database, then returns the entity if created or null if unsuccessfull
@@ -173,6 +174,23 @@ public class UserFactories(AddressRepository addressRepository, RoleRepository r
                 roleEntity = _roleRepository.Create(roleEntity);
                 return roleEntity;
             }
+        }
+        catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
+        return null!;
+    }
+
+    public ProfileEntity CreateProfileEntity(int userId, int roleId, int addressId)
+    {
+        try
+        {
+            ProfileEntity profileEntity = new ProfileEntity
+            {
+                UserId = userId,
+                RoleId = roleId,
+                AddressId = addressId
+            };
+            profileEntity = _profileRepository.Create(profileEntity);
+            return profileEntity;
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return null!;

@@ -20,18 +20,17 @@ public class UserService(ProfileRepository profileRepository, UserFactories user
             VerificationEntity verificationEntity = _userFactories.CreateVerificationEntity(user.Password, user.Email, userEntity.Id);
             AddressEntity addressEntity = _userFactories.CreateOrGetAddressEntity(user.City, user.Street, user.PostalCode);
             RoleEntity roleEntity = _userFactories.GetOrCreateRole(user.FirstName);
-            ProfileEntity profileEntity = new ProfileEntity
+            ProfileEntity profileEntity = _userFactories.CreateProfileEntity(userEntity.Id, addressEntity.Id, roleEntity.Id);
+            if (profileEntity != null)
             {
-                UserId = userEntity.Id,
-                RoleId = roleEntity.Id,
-                AddressId = addressEntity.Id
-            };
-            _profileRepository.Create(profileEntity);
-            return true;
+                return true;
+            }
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return false;
     }
+
+    // Skyddar lösenord genom att göra om det till en DTO som inte tar med password
     public IEnumerable<DisplayUserDto> GetAll()
     {
         var profileList = _profileRepository.GetAll();
