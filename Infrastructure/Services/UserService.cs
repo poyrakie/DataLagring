@@ -20,7 +20,7 @@ public class UserService(ProfileRepository profileRepository, UserFactories user
             VerificationEntity verificationEntity = _userFactories.CreateVerificationEntity(user.Password, user.Email, userEntity.Id);
             AddressEntity addressEntity = _userFactories.CreateOrGetAddressEntity(user.City, user.Street, user.PostalCode);
             RoleEntity roleEntity = _userFactories.GetOrCreateRole(user.FirstName);
-            ProfileEntity profileEntity = _userFactories.CreateProfileEntity(userEntity.Id, addressEntity.Id, roleEntity.Id);
+            ProfileEntity profileEntity = _userFactories.CreateProfileEntity(userEntity.Id, roleEntity.Id, addressEntity.Id);
             if (profileEntity != null)
             {
                 return true;

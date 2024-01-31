@@ -68,6 +68,7 @@ public class UserMenuService(AddressRepository addressRepository, ProfileReposit
                 Console.WriteLine($"User {index + 1}:");
                 Console.WriteLine($"First name:\t{item.FirstName}");
                 Console.WriteLine($"Last name:\t{item.LastName} ");
+                Console.WriteLine($"Role:\t\t{item.RoleName} ");
                 Console.WriteLine("----------------------------");
                 i++;
             }

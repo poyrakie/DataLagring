@@ -124,10 +124,48 @@ public class ProductFactories(CategoryRepository categoryRepository, ProductRepo
                 Price = entity.Price,
                 CategoryName = category.Name,
                 ManufacturerName = manufacturer.Name,
+                Id = entity.Id
             };
             return productDto;
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return null!;
+    }
+    public IEnumerable<Order> GetAllOrders(int userId) 
+    {
+        try
+        {
+            List<Order> updatedOrderList = [];
+            List<Order> orderList = _orderRepository.GetAll().ToList();
+            foreach (var order in orderList) 
+            {
+                if (userId == order.UserId)
+                {
+                    updatedOrderList.Add(order);
+                }
+            }
+            return updatedOrderList;
+        }
+        catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
+        return null!;
+    }
+    public IEnumerable<OrderRow> GetAllOrderRows(int orderId) 
+    {
+        try
+        {
+            List<OrderRow> updatedOrderRows = [];
+            List<OrderRow> orderRows = _orderRowRepository.GetAll().ToList();
+            foreach (var row in orderRows)
+            {
+                if (orderId == row.OrderId)
+                {
+                    updatedOrderRows.Add(row);
+                }
+            }
+            return updatedOrderRows;
+        }
+        catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
+        return null!;
+
     }
 }

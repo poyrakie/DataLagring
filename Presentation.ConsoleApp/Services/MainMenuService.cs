@@ -29,7 +29,7 @@ public class MainMenuService(UserMenuService userMenuService, ProductMenuService
                     _userMenuService.UserMainMenu(this);
                     break;
                 case ConsoleKey.D2:
-                    //_productMenuService.ProductMainMenu();
+                    _productMenuService.ProductMainMenu(this);
                     break;
                 case ConsoleKey.D3:
                     Environment.Exit(0);

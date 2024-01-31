@@ -1,6 +1,7 @@
 ﻿using Infrastructure.Dtos;
 using Infrastructure.Entities.ProductEntities;
 using Infrastructure.Factories;
+using Infrastructure.Repositories;
 using Infrastructure.Repositories.ProductRepositories;
 using System.Diagnostics;
 
@@ -26,5 +27,18 @@ public class ProductService(ProductFactories productFactories, ProductRepository
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return false;
+    }
+    public IEnumerable<ProductDto> GetAllProducts() 
+    {
+        var productList = _productRepository.GetAll();
+        var productDtoList = new List<ProductDto>();
+
+        foreach (var item in productList)
+        {
+            var product = _productFactories.CompileFullProduct(item);
+            productDtoList.Add(product);
+        }
+
+        return productDtoList;
     }
 }
