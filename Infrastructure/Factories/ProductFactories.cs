@@ -61,17 +61,20 @@ public class ProductFactories(CategoryRepository categoryRepository, ProductRepo
     {
         try
         {
-            Product productEntity = new Product 
+            if(_categoryRepository.Exists(x => x.Id ==  categoryId) && _manufacturerRepository.Exists(x => x.Id == manufacturerId))
             {
-                Title = title,
-                Description = description,
-                Price = price,
-                CategoryId = categoryId,
-                ManufacturerId = manufacturerId
-            };
-            productEntity = _productRepository.Create(productEntity);
-            
-            return productEntity;
+                Product productEntity = new Product
+                {
+                    Title = title,
+                    Description = description,
+                    Price = price,
+                    CategoryId = categoryId,
+                    ManufacturerId = manufacturerId
+                };
+                productEntity = _productRepository.Create(productEntity);
+
+                return productEntity;
+            }
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return null!;
@@ -97,14 +100,17 @@ public class ProductFactories(CategoryRepository categoryRepository, ProductRepo
     {
         try
         {
-            OrderRow orderRowEntity = new OrderRow
+            if (_orderRepository.Exists(x => x.Id == orderId) && _productRepository.Exists(x => x.Id == productId))
             {
-                OrderId = orderId,
-                ProductId = productId
-            };
-            orderRowEntity = _orderRowRepository.Create(orderRowEntity);
+                OrderRow orderRowEntity = new OrderRow
+                {
+                    OrderId = orderId,
+                    ProductId = productId
+                };
+                orderRowEntity = _orderRowRepository.Create(orderRowEntity);
 
-            return orderRowEntity;
+                return orderRowEntity;
+            }
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return null!;
@@ -135,16 +141,19 @@ public class ProductFactories(CategoryRepository categoryRepository, ProductRepo
     {
         try
         {
-            List<Order> updatedOrderList = [];
-            List<Order> orderList = _orderRepository.GetAll().ToList();
-            foreach (var order in orderList) 
+            if (_orderRepository.Exists(x => x.UserId == userId))
             {
-                if (userId == order.UserId)
+                List<Order> updatedOrderList = [];
+                List<Order> orderList = _orderRepository.GetAll().ToList();
+                foreach (var order in orderList)
                 {
-                    updatedOrderList.Add(order);
+                    if (userId == order.UserId)
+                    {
+                        updatedOrderList.Add(order);
+                    }
                 }
+                return updatedOrderList;
             }
-            return updatedOrderList;
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return null!;
@@ -153,16 +162,19 @@ public class ProductFactories(CategoryRepository categoryRepository, ProductRepo
     {
         try
         {
-            List<OrderRow> updatedOrderRows = [];
-            List<OrderRow> orderRows = _orderRowRepository.GetAll().ToList();
-            foreach (var row in orderRows)
+            if(_orderRepository.Exists(x => x.Id == orderId))
             {
-                if (orderId == row.OrderId)
+                List<OrderRow> updatedOrderRows = [];
+                List<OrderRow> orderRows = _orderRowRepository.GetAll().ToList();
+                foreach (var row in orderRows)
                 {
-                    updatedOrderRows.Add(row);
+                    if (orderId == row.OrderId)
+                    {
+                        updatedOrderRows.Add(row);
+                    }
                 }
+                return updatedOrderRows;
             }
-            return updatedOrderRows;
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return null!;

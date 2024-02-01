@@ -33,15 +33,21 @@ public class UserService(ProfileRepository profileRepository, UserFactories user
     // Skyddar lösenord genom att göra om det till en DTO som inte tar med password
     public IEnumerable<DisplayUserDto> GetAll()
     {
-        var profileList = _profileRepository.GetAll();
-        var userList = new List<DisplayUserDto>();
-
-        foreach (var item in profileList)
+        try
         {
-            var user = _userFactories.CompileUserDto(item);
-            userList.Add(user);
-        }
+            var profileList = _profileRepository.GetAll();
+            var userList = new List<DisplayUserDto>();
 
-        return userList;
+            foreach (var item in profileList)
+            {
+                var user = _userFactories.CompileUserDto(item);
+                userList.Add(user);
+            }
+
+            return userList;
+        }
+        catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
+        return null!;
+
     }
 }

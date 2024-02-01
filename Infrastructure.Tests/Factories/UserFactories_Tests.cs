@@ -191,4 +191,22 @@ public class UserFactories_Tests
         Assert.NotNull(result);
         Assert.IsType<ProfileEntity>(result);
     }
+    [Fact]
+    public void CreateProfileEntity_ShouldReturnFalse_IfIdsDoesNotMatchDatabase()
+    {
+        // Arrange
+        var addressRepository = new AddressRepository(_context);
+        var roleRepository = new RoleRepository(_context);
+        var userRepository = new UserRepository(_context);
+        var verificationRepository = new VerificationRepository(_context);
+        var profileRepository = new ProfileRepository(_context);
+
+        var userFactories = new UserFactories(addressRepository, roleRepository, userRepository, verificationRepository, profileRepository);
+
+        // Act
+        var result = userFactories.CreateProfileEntity(1, 1, 1);
+
+        // Assert
+        Assert.Null(result);
+    }
 }

@@ -183,14 +183,18 @@ public class UserFactories(AddressRepository addressRepository, RoleRepository r
     {
         try
         {
-            ProfileEntity profileEntity = new ProfileEntity
+            if(_userRepository.Exists(x => x.Id == userId) && _roleRepository.Exists(x => x.Id ==  roleId) && _addressRepository.Exists(x => x.Id == addressId))
             {
-                UserId = userId,
-                RoleId = roleId,
-                AddressId = addressId
-            };
-            profileEntity = _profileRepository.Create(profileEntity);
-            return profileEntity;
+                ProfileEntity profileEntity = new ProfileEntity
+                {
+                    UserId = userId,
+                    RoleId = roleId,
+                    AddressId = addressId
+                };
+                profileEntity = _profileRepository.Create(profileEntity);
+                return profileEntity;
+            }
+
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
         return null!;
