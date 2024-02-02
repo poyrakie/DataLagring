@@ -9,7 +9,7 @@ using System.Security;
 
 namespace Presentation.ConsoleApp.Services;
 
-public class ProductMenuService(ProductService productService, VerificationRepository verificationRepository, ProfileRepository profileRepository, ProductRepository productRepository, ProductFactories productFactories, OrderRowRepository orderRowRepository)
+public class ProductMenuService(ProductService productService, VerificationRepository verificationRepository, UserRepository userRepository, ProfileRepository profileRepository, ProductRepository productRepository, ProductFactories productFactories, OrderRowRepository orderRowRepository)
 {
     private readonly ProductFactories _productFactories = productFactories;
     private readonly ProductService _productService = productService;
@@ -18,6 +18,7 @@ public class ProductMenuService(ProductService productService, VerificationRepos
     private readonly OrderRowRepository _orderRowRepository = orderRowRepository;
 
     private readonly VerificationRepository _verificationRepository = verificationRepository;
+    private readonly UserRepository _userRepository = userRepository;
     private readonly ProfileRepository _profileRepository = profileRepository;
 
     public void ProductMainMenu(MainMenuService mainMenuService)
@@ -108,52 +109,46 @@ public class ProductMenuService(ProductService productService, VerificationRepos
     public void ShowPreviousOrdersMenu(MainMenuService mainMenuService, string email)
     {
         VerificationEntity verificationEntity = _verificationRepository.GetOne(x => x.Email == email);
+        UserEntity userEntity = _userRepository.GetOne(x => x.Id == verificationEntity.UserId);
         IEnumerable<Order> orders = _productFactories.GetAllOrders(verificationEntity.UserId);
         Console.Clear();
         if (orders.Any())
         {
-            Console.WriteLine("Please enter the number of the order you would like to inspect, or 0 to return to product menu.");
+            var productList = _productService.GetAllProducts();
             foreach (var (item, index) in orders.Select((o, i) => (o, i)))
             {
-                Console.Write($"{index + 1}, ");
-            }
-            string answer = Console.ReadLine()!;
-            if (int.TryParse(answer, out int result))
-            {
-                if (result == 0)
-                {
-                    Console.WriteLine("Returning to product menu");
-                    Console.ReadKey();
-                    ProductMainMenu(mainMenuService);
-                }
-                else
-                {
-                    Order order = orders.ElementAt(result - 1);
-                    IEnumerable<OrderRow> orderRows = _productFactories.GetAllOrderRows(order.Id);
-                    var productList = _productService.GetAllProducts();
-                    decimal price = 0;
-                    foreach (var row in orderRows)
-                    {
-                        ProductDto product = productList.FirstOrDefault(x => x.Id == row.ProductId)!;
+                Console.WriteLine($"Order: {index + 1} ");
+                Order order = orders.ElementAt(index);
+                IEnumerable<OrderRow> orderRows = _productFactories.GetAllOrderRows(order.Id);
 
-                        Console.WriteLine("------------------");
-                        Console.WriteLine($"{row.Amount} {product.Title}");
-                        Console.WriteLine($"Category: {product.CategoryName}");
-                        Console.WriteLine($"Manufacturer: {product.ManufacturerName}");
-                        Console.WriteLine($"Price: {product.Price}");
-                        Console.WriteLine("------------------");
-                        price += product.Price*row.Amount;
-                    }
-                    Console.WriteLine($"Total price: {price}");
-                    Console.WriteLine("Press any key to return to product menu");
-                    Console.ReadKey();
+                
+                decimal price = 0;
+                foreach (var row in orderRows)
+                {
+                    ProductDto product = productList.FirstOrDefault(x => x.Id == row.ProductId)!;
+
+                    Console.WriteLine("------------------");
+                    Console.WriteLine($"{row.Amount} {product.Title}");
+                    Console.WriteLine($"Category: {product.CategoryName}");
+                    Console.WriteLine($"Manufacturer: {product.ManufacturerName}");
+                    Console.WriteLine($"Price: {product.Price}");
+                    Console.WriteLine("------------------");
+                    price += product.Price * row.Amount;
                 }
+                Console.WriteLine($"Total price: {price}");
+            }
+            Console.WriteLine("Would you like to start a new order? (y/n)");
+            var answer = Console.ReadKey().Key;
+
+            if (answer != ConsoleKey.Y)
+            {
+                Console.WriteLine("Returning to product menu");
+                Console.ReadKey();
+                ProductMainMenu(mainMenuService);
             }
             else
             {
-                Console.WriteLine("Invalid input detected. Returning to product menu.");
-                Console.ReadKey();
-                ProductMainMenu(mainMenuService);
+            ShowNewOrderMenu(mainMenuService, email);
             }
         }
         else
@@ -205,7 +200,6 @@ public class ProductMenuService(ProductService productService, VerificationRepos
                 }
                 else
                 {
-                    result--;
                     if (result >= 1 && result <= productList.Count())
                     {
                         ProductDto product = productList.ElementAt(result - 1);

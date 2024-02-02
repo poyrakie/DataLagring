@@ -154,9 +154,11 @@ public class ProductFactories(CategoryRepository categoryRepository, ProductRepo
                 }
                 return updatedOrderList;
             }
+
         }
         catch (Exception ex) { Debug.WriteLine("ERROR :: " + ex.Message); }
-        return null!;
+        List<Order> emptyList = [];
+        return emptyList;
     }
     public IEnumerable<OrderRow> GetAllOrderRows(int orderId) 
     {

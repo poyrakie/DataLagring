@@ -200,7 +200,7 @@ public class ProductFactories_Tests
         Assert.IsAssignableFrom<IEnumerable<Order>>(result);
     }
     [Fact]
-    public void GetAllOrders_ShouldReturnNull_IfUserIdDoesNotMatchDatabase()
+    public void GetAllOrders_ShouldReturnEmptyList_IfUserIdDoesNotMatchDatabase()
     {
         // Arrange
         var categoryRepository = new CategoryRepository(_context);
@@ -215,7 +215,9 @@ public class ProductFactories_Tests
         var result = productFactories.GetAllOrders(1);
 
         // Assert
-        Assert.Null(result);
+        Assert.NotNull(result);
+        Assert.IsAssignableFrom<IEnumerable<Order>>(result);
+        Assert.Empty(result);
     }
     [Fact]
     public void GetAllOrderRows_ShouldTakeOneIntOfOrderThenGetAllOrderRowsMatchingInDatabase_ThenReturnIEnumerableListOfOrderRows()

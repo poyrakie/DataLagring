@@ -115,54 +115,33 @@ public class UserMenuService(AddressRepository addressRepository, ProfileReposit
             Console.Clear();
             for (int i = 0; i < menuStrings.Length; i++)
             {
-                Console.Write($"{menuStrings[i]}: ");
-                string answer = Console.ReadLine()!;
-                if (answer != string.Empty)
+
+                switch (menuStrings[i])
                 {
-                    switch (menuStrings[i])
-                    {
-                        case "First name":
-                            user.FirstName = answer;
-                            break;
-                        case "Last name":
-                            user.LastName = answer;
-                            break;
-                        case "Street":
-                            user.Street = answer;
-                            break;
-                        case "City":
-                            user.City = answer;
-                            break;
-                        case "Postalcode":
-                            user.PostalCode = answer;
-                            break;
-                        case "Email":
-                            if (!_verificationRepository.Exists(x => x.Email == answer))
-                            {
-                                user.Email = answer;
-                                break;
-                            }
-                            else
-                            {
-                                Console.WriteLine("That email already exists. Would you like to try again? (y/n)");
-                                var tryAgainAnswer = Console.ReadKey().Key;
-                                switch (tryAgainAnswer)
-                                {
-                                    case ConsoleKey.Y:
-                                        ShowAddMenu(mainMenuService);
-                                        break;
-                                    default:
-                                        Console.WriteLine("Returning to user menu");
-                                        UserMainMenu(mainMenuService);
-                                        break;
-                                }
-                                break;
-                            }
-                        case "Password":
-                            user.Password = answer;
-                            break;
-                    }
+                    case "First name":
+                        SetValidInput(val => user.FirstName = val, menuStrings[i]);
+
+                        break;
+                    case "Last name":
+                        SetValidInput(val => user.LastName = val, menuStrings[i]);
+                        break;
+                    case "Street":
+                        SetValidInput(val => user.Street = val, menuStrings[i]);
+                        break;
+                    case "City":
+                        SetValidInput(val => user.City = val, menuStrings[i]);
+                        break;
+                    case "Postalcode":
+                        SetValidInput(val => user.PostalCode = val, menuStrings[i]);
+                        break;
+                    case "Email":
+                        SetValidEmail(val => user.Email = val, menuStrings[i]);
+                        break;
+                    case "Password":
+                        SetValidInput(val => user.Password = val, menuStrings[i]);
+                        break;
                 }
+
             }
             if (_userService.CreateUser(user))
             {
@@ -212,15 +191,18 @@ public class UserMenuService(AddressRepository addressRepository, ProfileReposit
             {
                 case 1:
                     UserEntity userEntityFirstName = _userRepository.GetOne(x => x.Id == entity.UserId);
-                    SetValidInput(() => Console.ReadLine()?.Trim()!, val => userEntityFirstName.FirstName = val, propertyName[0]);
+                    SetValidInput(val => userEntityFirstName.FirstName = val, propertyName[0]);
+                    _userRepository.Update(x => x.Id == userEntityFirstName.Id, userEntityFirstName);
                     break;
                 case 2:
                     UserEntity userEntityLastName = _userRepository.GetOne(x => x.Id == entity.UserId);
-                    SetValidInput(() => Console.ReadLine()?.Trim()!, val => userEntityLastName.LastName = val, propertyName[1]);
+                    SetValidInput(val => userEntityLastName.LastName = val, propertyName[1]);
+                    _userRepository.Update(x => x.Id == userEntityLastName.Id, userEntityLastName);
                     break;
                 case 3:
                     VerificationEntity verificationEntity = _verificationRepository.GetOne(x => x.UserId == entity.UserId);
-                    SetValidEmail(() => Console.ReadLine()?.Trim()!, val => verificationEntity.Email = val, propertyName[2]);
+                    SetValidEmail(val => verificationEntity.Email = val, propertyName[2]);
+                    _verificationRepository.Update(x => x.UserId == verificationEntity.UserId, verificationEntity);
                     break;
                 case 4:
                     UpdateAddress(entity, propertyName[3], propertyName[4], propertyName[5]);
@@ -252,9 +234,9 @@ public class UserMenuService(AddressRepository addressRepository, ProfileReposit
     private void UpdateAddress(ProfileEntity entity, string propertyNameX, string propertyNameY, string propertyNameZ)
     {
         AddressEntity addressEntity = _addressRepository.GetOne(x => x.Id == entity.AddressId);
-        SetValidInput(() => Console.ReadLine()?.Trim()!, val => addressEntity.City = val, propertyNameX);
-        SetValidInput(() => Console.ReadLine()?.Trim()!, val => addressEntity.Street = val, propertyNameY);
-        SetValidInput(() => Console.ReadLine()?.Trim()!, val => addressEntity.PostalCode = val, propertyNameZ);
+        SetValidInput(val => addressEntity.City = val, propertyNameX);
+        SetValidInput(val => addressEntity.Street = val, propertyNameY);
+        SetValidInput(val => addressEntity.PostalCode = val, propertyNameZ);
         addressEntity = _userFactories.CreateOrGetAddressEntity(addressEntity.City, addressEntity.Street, addressEntity.PostalCode);
         entity.AddressId = addressEntity.Id;
         entity = _profileRepository.Update(x => x.UserId == entity.UserId, entity);
@@ -263,7 +245,7 @@ public class UserMenuService(AddressRepository addressRepository, ProfileReposit
             Console.WriteLine("Updated successfully");
         }
     }
-    private void SetValidInput(Func<string> getProperty, Action<string> setProperty, string property)
+    private void SetValidInput(Action<string> setProperty, string property)
     {
         while (true)
         {
@@ -281,7 +263,7 @@ public class UserMenuService(AddressRepository addressRepository, ProfileReposit
             }
         }
     }
-    private void SetValidEmail(Func<string> getProperty, Action<string> setProperty, string property)
+    private void SetValidEmail(Action<string> setProperty, string property)
     {
         while (true)
         {
